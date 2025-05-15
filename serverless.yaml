@@ -1,0 +1,29 @@
+service: visionfy-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: dev
+  environment:
+    JWT_SECRET: ${env:JWT_SECRET}
+    DATABASE_URL: ${env:DATABASE_URL}
+
+functions:
+  api:
+    handler: src/index.handler
+    events:
+      - httpApi: '*'
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+package:
+  individually: true
+
+custom:
+  dotenv:
+    path: .env

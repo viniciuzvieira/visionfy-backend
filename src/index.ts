@@ -1,4 +1,5 @@
 import Fastify, { FastifyRequest, FastifyReply } from 'fastify'
+import awsLambdaFastify from '@fastify/aws-lambda'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import swagger from '@fastify/swagger'
@@ -17,13 +18,13 @@ if (!jwtSecret) {
 
 const app = Fastify({ logger })
 
-// Register plugins
+// Middlewares
 app.register(cors)
 app.register(jwt, {
   secret: jwtSecret
 })
 
-// Register Swagger
+// Swagger
 app.register(swagger, {
   openapi: {
     info: {
@@ -34,34 +35,32 @@ app.register(swagger, {
 })
 app.register(swaggerUI)
 
-// JWT middleware inline
-const verifyJWT = async (request: FastifyRequest, reply: FastifyReply) => {
+// JWT Auth Decorator
+app.decorate('authenticate', async function (
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
     await request.jwtVerify()
   } catch (err) {
-    reply.code(401).send({ message: 'Unauthorized' })
+    reply.code(401).send({ message: 'Unauthorized', error: err })
   }
-}
-
-// Decorate so we can use app.verifyJWT
-app.decorate('verifyJWT', verifyJWT)
-
-// Register routes
-app.register(userRoutes, { prefix: '/users' })
-
-// Start server
-const port = Number(process.env.PORT) || 4000
-app.listen({ port }, (err, address) => {
-  if (err) {
-    app.log.error(err)
-    process.exit(1)
-  }
-  app.log.info(`🚀 Server listening at ${address}`)
 })
 
-// TypeScript fix to allow using verifyJWT
-declare module 'fastify' {
-  interface FastifyInstance {
-    verifyJWT: typeof verifyJWT
-  }
+// Rotas
+app.register(userRoutes, { prefix: '/users' })
+
+// ✅ Exporta o handler AWS para uso com Serverless Framework
+export const handler = awsLambdaFastify(app)
+
+// 👇 Apenas roda localmente com `npm run dev`
+if (require.main === module) {
+  const port = Number(process.env.PORT) || 4000
+  app.listen({ port }, (err, address) => {
+    if (err) {
+      app.log.error(err)
+      process.exit(1)
+    }
+    app.log.info(`🚀 Server listening at ${address}`)
+  })
 }
