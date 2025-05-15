@@ -1,0 +1,37 @@
+{
+  "name": "visionfy-backend",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "seed": "ts-node prisma/seed.ts",
+    "test:k6": "k6 run tests/loadtest.js"
+  },
+  "dependencies": {
+    "@fastify/auth": "^5.0.2",
+    "@fastify/cors": "^8.0.0",
+    "@fastify/jwt": "^5.0.0",
+    "@fastify/swagger": "^8.0.0",
+    "@fastify/swagger-ui": "^1.0.0",
+    "@prisma/client": "^5.0.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.0.0",
+    "fastify": "^4.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^8.0.0",
+    "zod": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "prisma": "^5.0.0",
+    "ts-node": "^10.0.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.0"
+  }
+}
