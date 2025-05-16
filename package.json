@@ -10,7 +10,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "seed": "ts-node prisma/seed.ts",
-    "test:k6": "k6 run tests/loadtest.js"
+    "test:k6": "k6 run tests/loadtest.js",
+    "deploy": "npm run build && serverless deploy"
   },
   "dependencies": {
     "@fastify/auth": "^5.0.2",
