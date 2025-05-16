@@ -1,13 +1,14 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import { z } from 'zod'
-import { verifyToken } from '../middlewares/verifyToken'
+import { FastifyInstance } from 'fastify'
 
 const prisma = new PrismaClient()
 
 export async function userRoutes(app: FastifyInstance) {
-  app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
+  const anyApp = app as any // 👈 bypass do TypeScript
+
+  app.post('/register', async (request: any, reply: any) => {
     const bodySchema = z.object({
       name: z.string(),
       email: z.string().email(),
@@ -28,15 +29,11 @@ export async function userRoutes(app: FastifyInstance) {
     })
 
     return reply.code(201).send({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email
-      }
+      user: { id: user.id, name: user.name, email: user.email }
     })
   })
 
-  app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/login', async (request: any, reply: any) => {
     const bodySchema = z.object({
       email: z.string().email(),
       password: z.string()
@@ -45,7 +42,6 @@ export async function userRoutes(app: FastifyInstance) {
     const { email, password } = bodySchema.parse(request.body)
 
     const user = await prisma.user.findUnique({ where: { email } })
-
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return reply.code(401).send({ message: 'Invalid credentials' })
     }
@@ -54,22 +50,13 @@ export async function userRoutes(app: FastifyInstance) {
 
     return reply.send({
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email
-      }
+      user: { id: user.id, name: user.name, email: user.email }
     })
   })
 
-  app.get('/', { preHandler: [verifyToken] }, async (request: FastifyRequest, reply: FastifyReply) => {
+  app.get('/', { preHandler: [anyApp.authenticate] }, async (_request: any, reply: any) => {
     const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true
-      }
+      select: { id: true, name: true, email: true, createdAt: true }
     })
     return reply.send(users)
   })
